@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Tết Âm Lịch</title>
+    <link rel="stylesheet" href="style.css"> <!-- Liên kết tệp CSS -->
+   
+</head>
+<body>
+    <div class="header">
+        <div id="today-title"></div> <!-- Hiển thị ngày hôm nay -->
+        <div id="current-time"></div> <!-- Hiển thị giờ thực tế -->
+    </div>
+    <div class="calendar">
+        <!-- Các ô lịch sẽ được tạo ở đây bằng JavaScript -->
+    </div>
+
+    <script>
+        // Cập nhật giờ thực tế mỗi giây
+        function updateTime() {
+            const now = new Date();
+            const options = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('vi-VN', options);
+            document.getElementById('today-title').innerText = `Hôm nay: ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`; // Cập nhật tiêu đề ngày hôm nay
+        }
+        setInterval(updateTime, 1000); // Cập nhật mỗi giây
+
+        // Xác định ngày bắt đầu và ngày kết thúc
+        const startDate = new Date("2024-11-01"); // Ngày bắt đầu
+        const endDate = new Date("2025-01-29"); // Ngày kết thúc
+        const calendar = document.querySelector('.calendar');
+        const today = new Date(); // Ngày hôm nay
+
+        // Tạo các ô lịch từ ngày bắt đầu đến ngày kết thúc
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dayDiv = document.createElement('div');
+            dayDiv.classList.add('day'); // Gán class 'day' vào div mới tạo
+
+            const dateString = `${d.getDate()}/${d.getMonth() + 1}`;
+            const isChecked = localStorage.getItem(dateString) === 'true'; // Kiểm tra nếu checkbox đã được đánh dấu
+            const note = localStorage.getItem(`note_${dateString}`); // Lấy ghi chú từ localStorage
+
+            // Hiển thị ngày tháng và trạng thái checkbox
+            dayDiv.innerHTML = `
+                <strong>${dateString}</strong>
+                <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="addNote(this, '${dateString}')">
+                ${note ? '<span class="note-indicator" onclick="showNote(\'' + dateString + '\')">*</span>' : ''}
+            `;
+
+            // Nếu là hôm nay, cho phép chỉnh sửa ghi chú
+            if (d.toDateString() === today.toDateString()) {
+                dayDiv.onclick = function () {
+                    const note = localStorage.getItem(`note_${dateString}`);
+                    const newNote = prompt(`Ghi chú cho ngày ${dateString}:`, note);
+                    if (newNote !== null) {
+                        if (newNote === '') {
+                            localStorage.removeItem(`note_${dateString}`); // Xóa ghi chú nếu nhập trống
+                        } else {
+                            localStorage.setItem(`note_${dateString}`, newNote); // Cập nhật ghi chú
+                        }
+                        location.reload(); // Làm mới trang để cập nhật ghi chú
+                    }
+                };
+            }
+
+            calendar.appendChild(dayDiv); // Thêm dayDiv vào lịch
+        }
+
+        // Hàm lưu trạng thái checkbox vào localStorage
+        function addNote(checkbox, date) {
+            // Lưu trạng thái của checkbox vào localStorage
+            localStorage.setItem(date, checkbox.checked);
+        }
+
+        // Hàm hiển thị ghi chú trong cửa sổ popup
+        function showNote(date) {
+            const note = localStorage.getItem(`note_${date}`);
+            if (note) {
+                alert(`Ghi chú cho ngày ${date}: ${note}`);
+            }
+        }
+
+        // Cập nhật giờ ngay khi trang được tải
+        updateTime();
+    </script>
+</body>
+</html>
